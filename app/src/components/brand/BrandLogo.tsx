@@ -53,14 +53,25 @@ export function NestleMark({ className }: { className?: string }) {
   )
 }
 
-/** Lockup oficial do programa. Transparente: vai sobre o verde do login. */
+/**
+ * Lockup oficial do programa, extraido da arte de capa em alta resolucao (ver
+ * scripts/optimize-brand-assets.mjs).
+ *
+ * SO use sobre o verde escuro do tema: bordas e sombras vem compostas sobre o
+ * verde da arte, e nao transparentes -- sobre fundo claro aparece um halo.
+ *
+ * width/height sao o tamanho REAL do arquivo servido (800x562). O valor
+ * anterior, 646x442, era uma proporcao errada (1,462 em vez de 1,425) para um
+ * arquivo que na pratica saia com 315x221: o browser reservava a altura errada
+ * e a tela saltava ao carregar.
+ */
 export function BrandLockup({ className }: { className?: string }) {
   return (
     <img
       src="/brand/lockup-crescer-brokers.webp"
       alt="CRESCER+BROKERS - Programa de Excelencia Nestle"
-      width={646}
-      height={442}
+      width={800}
+      height={562}
       className={cn('h-auto w-full', className)}
     />
   )
