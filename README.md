@@ -49,11 +49,22 @@ Supabase (Postgres + Auth + RLS) · Vercel
 
 ## Rodando localmente
 
+Setup inicial, uma vez por máquina:
+
 ```bash
 cd app
 npm install
 cp .env.example .env.local     # preencha com os dados do projeto Supabase
-npm run dev
+```
+
+`.env.local` não é versionado — todo clone novo precisa recriá-lo a partir do
+`.env.example`.
+
+Depois disso, os scripts rodam tanto da raiz do repositório quanto de dentro de
+`app/` — a raiz apenas delega para `app/`:
+
+```bash
+npm run dev     # da raiz ou de app/; sobe em http://localhost:5173
 ```
 
 | Script | O quê |

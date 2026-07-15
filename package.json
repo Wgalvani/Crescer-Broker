@@ -1,0 +1,14 @@
+{
+  "name": "crescer-brokers-auditoria-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix app run dev",
+    "build": "npm --prefix app run build",
+    "lint": "npm --prefix app run lint",
+    "typecheck": "npm --prefix app run typecheck",
+    "preview": "npm --prefix app run preview",
+    "brand:assets": "npm --prefix app run brand:assets",
+    "db:push": "npm --prefix app run db:push",
+    "db:types": "npm --prefix app run db:types"
+  }
+}
