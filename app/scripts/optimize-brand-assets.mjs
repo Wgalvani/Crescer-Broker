@@ -16,21 +16,26 @@ const OUT = path.resolve(here, '../public/brand')
 
 await mkdir(OUT, { recursive: true })
 
-// A arte da capa e o fundo da tela de login. 1920px cobre telas 1080p em 1x e
-// fica aceitavel em 2x, ja que ela vive desfocada atras de um card.
-await sharp(path.join(SOURCE, 'logo-crescer-brokers-lockup.png'))
-  .resize({ width: 1920 })
-  .webp({ quality: 82 })
-  .toFile(path.join(OUT, 'cover-crescer-brokers.webp'))
+/** Recorta a area opaca e reexporta em WebP com fundo transparente. */
+async function trimToWebp(file, out, width, quality = 90) {
+  const info = await sharp(path.join(SOURCE, file))
+    .trim({ threshold: 10 })
+    .resize({ width, withoutEnlargement: true })
+    .webp({ quality, alphaQuality: 100 })
+    .toFile(path.join(OUT, out))
+  return info
+}
 
-// Recorte do selo (triangulo azul + wordmark). A caixa do logo dentro do
-// original 3000x1688 e x 689..2346 / y 300..1456, medida por varredura de
-// pixel (scripts/_measure.mjs); os 40px de folga sao margem de respiro.
-await sharp(path.join(SOURCE, 'logo-crescer-brokers-lockup.png'))
-  .extract({ left: 649, top: 260, width: 1738, height: 1237 })
-  .resize({ width: 720 })
-  .webp({ quality: 90 })
-  .toFile(path.join(OUT, 'lockup-crescer-brokers.webp'))
+// Lockup principal do programa: transparente, vai sobre o verde do login.
+// O original tem 323x231 -- pequeno para uma posicao de destaque, por isso a
+// UI o exibe em ~260px (ver AuthLayout) em vez de esticar e borrar. Ao obter
+// um SVG ou uma exportacao maior, basta trocar o arquivo em assets/.
+await trimToWebp('logo-crescer-brokers.png', 'lockup-crescer-brokers.webp', 646)
+
+// Selo da campanha interna "Missao 1BI". Marca distinta do CRESCER+BROKERS,
+// em roxo/laranja: entra apenas discreto no rodape do login, para nao brigar
+// com a paleta do programa (PRD 8.2).
+await trimToWebp('selo-missao-1bi.png', 'selo-missao-1bi.webp', 192)
 
 // Branco sobre preto opaco, sem canal alfa: quem faz o preto sumir e o
 // mix-blend-mode:screen do BrandLogo, que so funciona sobre fundo escuro.
