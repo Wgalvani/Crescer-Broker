@@ -67,20 +67,62 @@ export function BrandLockup({ className }: { className?: string }) {
 }
 
 /**
- * Selo da campanha interna "Missao 1BI: 365 dias de jornada".
- *
- * Marca distinta do CRESCER+BROKERS, em roxo/laranja. Fica deliberadamente
- * discreto e restrito ao rodape do login: no corpo do app ele brigaria com a
- * paleta do programa, que o PRD 8.2 define como verde/azul/lime.
+ * Selo da campanha interna "Missao 1BI: 365 dias de jornada" -- tema do ano da
+ * empresa. Marca distinta do CRESCER+BROKERS, em roxo/laranja.
  */
 export function SeloMissao1BI({ className }: { className?: string }) {
   return (
     <img
       src="/brand/selo-missao-1bi.webp"
       alt="Crescer+ e Melhor - Missao 1BI: 365 dias de jornada"
-      width={192}
-      height={237}
+      width={512}
+      height={631}
       className={cn('h-auto', className)}
     />
+  )
+}
+
+/**
+ * O mesmo selo como marca d'agua de fundo -- o tema do ano com presenca, sem
+ * disputar com o lockup.
+ *
+ * O `mix-blend-mode: luminosity` e o que torna isto possivel: ele toma a
+ * LUMINANCIA do selo e a COR do fundo, entao o desenho aparece inteiro mas
+ * assume a paleta da tela. Sem ele, o roxo/laranja da campanha vira um anel
+ * amarronzado sobre o verde do programa (PRD 8.2) e suja a tela -- testado.
+ * Como a cor deixa de brigar, da para dobrar a opacidade e o selo fica maior e
+ * mais nitido do que ficaria colorido.
+ *
+ * aria-hidden: e decoracao pura, e o texto do selo nao acrescenta nada que a
+ * tela ja nao diga.
+ */
+export function SeloMissao1BIWatermark({
+  className,
+  imgClassName,
+}: {
+  className?: string
+  imgClassName?: string
+}) {
+  return (
+    // Sem z-index e sem position:fixed aqui, de proposito: os dois criam
+    // stacking context, o que ISOLA o mix-blend-mode e faz o selo voltar a
+    // exibir roxo/laranja. A sobreposicao correta vem da ordem no DOM -- o
+    // conteudo, que vem depois e e `relative`, pinta por cima.
+    <div
+      aria-hidden="true"
+      className={cn(
+        'pointer-events-none absolute inset-0 grid place-items-center overflow-hidden',
+        className
+      )}
+    >
+      <img
+        src="/brand/selo-missao-1bi.webp"
+        alt=""
+        className={cn(
+          'h-auto w-[min(560px,88vw)] opacity-[0.18] mix-blend-luminosity',
+          imgClassName
+        )}
+      />
+    </div>
   )
 }

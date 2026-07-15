@@ -1,6 +1,10 @@
 import { Outlet } from 'react-router-dom'
 import { HexPattern } from '@/components/brand/HexPattern'
-import { BrandLockup, NestleMark, SeloMissao1BI } from '@/components/brand/BrandLogo'
+import {
+  BrandLockup,
+  NestleMark,
+  SeloMissao1BIWatermark,
+} from '@/components/brand/BrandLogo'
 
 /*
  * Moldura das telas publicas (login, recuperacao de senha).
@@ -12,6 +16,9 @@ export function AuthLayout() {
   return (
     <div className="from-brand-deep-green to-brand-night-green relative min-h-svh bg-gradient-to-br">
       <HexPattern className="text-brand-lime/10" />
+      {/* Tema do ano da empresa. Grande, mas em opacidade baixa: assim a
+          paleta roxo/laranja vira textura em vez de disputar com o lockup. */}
+      <SeloMissao1BIWatermark />
 
       <div className="relative mx-auto flex min-h-svh max-w-md flex-col justify-center gap-8 px-4 py-12">
         {/* 260px, e nao a largura toda: o original tem 323px e esticar so
@@ -23,11 +30,7 @@ export function AuthLayout() {
         </main>
 
         <footer className="flex flex-col items-center gap-4">
-          <div className="flex items-center gap-5">
-            <NestleMark className="w-28 opacity-85" />
-            <span className="h-8 w-px bg-white/15" aria-hidden="true" />
-            <SeloMissao1BI className="w-11 opacity-90" />
-          </div>
+          <NestleMark className="w-28 opacity-85" />
           <p className="text-center text-xs text-white/50">
             Plataforma interna do Grupo Arantes para gestao do programa CRESCER+BROKERS.
             <br />

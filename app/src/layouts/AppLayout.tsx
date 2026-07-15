@@ -4,7 +4,7 @@ import { Bell, ChevronDown, LogOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn, initials } from '@/lib/utils'
 import { NAV_ITEMS } from '@/config/nav'
-import { Wordmark } from '@/components/brand/BrandLogo'
+import { SeloMissao1BIWatermark, Wordmark } from '@/components/brand/BrandLogo'
 import { useCurrentUser } from '@/features/auth/hooks'
 
 export function AppLayout() {
@@ -23,7 +23,13 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-svh">
+    <div className="relative min-h-svh">
+      {/* Tema do ano, com opacidade bem menor que a do login: aqui o fundo e
+          claro (--color-surface) e a marca d'agua nao pode competir com numeros
+          e semaforos. Os cards sao brancos e opacos, entao o texto mantem o
+          contraste AA que o PRD secao 7 exige -- o selo so aparece nas margens. */}
+      <SeloMissao1BIWatermark imgClassName="w-[min(680px,70vw)] opacity-[0.06]" />
+
       {/* Requisito WCAG AA (PRD secao 7): pular a navegacao pelo teclado. */}
       <a
         href="#conteudo"
@@ -111,7 +117,7 @@ export function AppLayout() {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
+      <div className="relative z-10 mx-auto flex max-w-7xl gap-6 px-4 py-6">
         <nav aria-label="Modulos" className="hidden w-56 shrink-0 md:block">
           <ul className="space-y-1">
             {visibleNav.map((item) => (

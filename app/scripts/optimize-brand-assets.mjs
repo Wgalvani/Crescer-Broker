@@ -32,10 +32,11 @@ async function trimToWebp(file, out, width, quality = 90) {
 // um SVG ou uma exportacao maior, basta trocar o arquivo em assets/.
 await trimToWebp('logo-crescer-brokers.png', 'lockup-crescer-brokers.webp', 646)
 
-// Selo da campanha interna "Missao 1BI". Marca distinta do CRESCER+BROKERS,
-// em roxo/laranja: entra apenas discreto no rodape do login, para nao brigar
-// com a paleta do programa (PRD 8.2).
-await trimToWebp('selo-missao-1bi.png', 'selo-missao-1bi.webp', 192)
+// Selo da campanha interna "Missao 1BI" -- tema do ano da empresa. Marca
+// distinta do CRESCER+BROKERS, em roxo/laranja. 1120px cobre o uso maior, como
+// marca d'agua de fundo do login (~560px em 2x); o mesmo arquivo serve o selo
+// pequeno do rodape.
+await trimToWebp('selo-missao-1bi.png', 'selo-missao-1bi.webp', 1120)
 
 // O original vem com a marca em PRETO sobre fundo transparente, e ela e usada
 // sobre o verde escuro do login. Recolorir para branco aqui, e nao no CSS:
