@@ -24,7 +24,7 @@ export function AuthLayout() {
 
         <footer className="flex flex-col items-center gap-4">
           <div className="flex items-center gap-5">
-            <NestleMark className="w-20 opacity-70" />
+            <NestleMark className="w-28 opacity-85" />
             <span className="h-8 w-px bg-white/15" aria-hidden="true" />
             <SeloMissao1BI className="w-11 opacity-90" />
           </div>

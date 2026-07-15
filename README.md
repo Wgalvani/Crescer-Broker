@@ -148,12 +148,15 @@ gerar litígio.
   borrar — em telas retina ainda fica levemente suave. Um SVG ou uma exportação maior
   resolve: basta substituir o arquivo em `assets/` e rodar `npm run brand:assets`; o
   componente não muda.
-- **Logo Nestlé sem canal alfa.** É branco sobre preto opaco, e depende de
-  `mix-blend-mode: screen` para o preto sumir — o que só funciona sobre fundo escuro.
-  Um PNG com transparência dispensaria o truque.
 - **Wordmark do cabeçalho é tipográfico** (Sora + `+` em lime), não o lockup: reduzido à
   altura de um header de 64px, o PNG de 323px ficaria ilegível. Tipografia escala em
   qualquer tamanho.
+
+O logo Nestlé em branco é **gerado no build** a partir de `assets/logo-nestle.png` (que
+vem em preto): o alfa do original vira máscara de uma chapa branca, em
+`scripts/optimize-brand-assets.mjs`. Isso é feito ali e não no CSS de propósito —
+`filter: invert()` e `mix-blend-mode` deixam a marca lavada e só funcionam sobre certos
+fundos.
 - **Uso da marca Nestlé** em produto de terceiro — vale validar com o jurídico.
 - **LGPD:** turn-over e admissão/demissão são dados pessoais (PRD seção 7). O RBAC já
   restringe; a política de retenção fica para a Fase 2.

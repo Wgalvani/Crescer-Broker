@@ -3,22 +3,19 @@ import { cn } from '@/lib/utils'
 /*
  * Ativos de marca.
  *
- * Estado dos originais em assets/:
- *   - logo-crescer-brokers.png     323x231, COM transparencia. E o lockup
- *                                  oficial usado no login.
- *   - selo-missao-1bi.png          1500x1500, com transparencia. Campanha
- *                                  interna, marca distinta (roxo/laranja).
- *   - logo-nestle-white.png        branco sobre PRETO OPACO, sem canal alfa.
+ * Estado dos originais em assets/ (todos com transparencia):
+ *   - logo-crescer-brokers.png     323x231. Lockup oficial, usado no login.
+ *   - logo-nestle.png              600x600, marca em PRETO. A versao branca e
+ *                                  gerada no build a partir do alfa dele.
+ *   - selo-missao-1bi.png          1500x1500. Campanha interna, marca distinta
+ *                                  (roxo/laranja) -- so no rodape do login.
  *   - logo-crescer-brokers-lockup.png  arte da capa inteira (3000x1688), sem
  *                                  transparencia. Nao usado -- mantido como
  *                                  referencia da fonte oficial.
  *
- * Dois contornos seguem necessarios:
- *   - o logo Nestle usa mix-blend-mode:screen para o preto sumir; so funciona
- *     sobre fundo escuro. Um PNG com alfa dispensaria o blend.
- *   - o wordmark do cabecalho e TIPOGRAFICO (Sora + "+" em lime): o lockup
- *     tem 323px de largura e ficaria borrado reduzido a altura de um header.
- *     Tipografia escala em qualquer tamanho.
+ * Um contorno segue necessario: o wordmark do cabecalho e TIPOGRAFICO (Sora +
+ * "+" em lime). O lockup tem 323px de largura e ficaria borrado reduzido a
+ * altura de um header de 64px; tipografia escala em qualquer tamanho.
  */
 
 /** Wordmark tipografico para o cabecalho. */
@@ -36,17 +33,22 @@ export function Wordmark({ className }: { className?: string }) {
 }
 
 /**
- * Logo Nestle. Depende de fundo escuro: o `screen` so anula o preto do PNG
- * porque o resultado com um fundo claro seria um retangulo lavado.
+ * Logo Nestle em branco, com transparencia real.
+ *
+ * Sem mix-blend-mode: a versao branca e gerada no build (ver
+ * scripts/optimize-brand-assets.mjs), entao o PNG ja tem alfa e funciona sobre
+ * qualquer fundo. A versao anterior era branco sobre preto opaco e dependia de
+ * `mix-blend-mode: screen`, que so anulava o preto sobre fundo escuro -- e
+ * ainda assim deixava a marca com aspecto lavado.
  */
 export function NestleMark({ className }: { className?: string }) {
   return (
     <img
       src="/brand/logo-nestle-white.png"
       alt="Nestle"
-      width={120}
-      height={39}
-      className={cn('h-auto mix-blend-screen', className)}
+      width={480}
+      height={122}
+      className={cn('h-auto', className)}
     />
   )
 }

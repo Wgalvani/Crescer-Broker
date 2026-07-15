@@ -37,11 +37,27 @@ await trimToWebp('logo-crescer-brokers.png', 'lockup-crescer-brokers.webp', 646)
 // com a paleta do programa (PRD 8.2).
 await trimToWebp('selo-missao-1bi.png', 'selo-missao-1bi.webp', 192)
 
-// Branco sobre preto opaco, sem canal alfa: quem faz o preto sumir e o
-// mix-blend-mode:screen do BrandLogo, que so funciona sobre fundo escuro.
-await sharp(path.join(SOURCE, 'logo-nestle-white.png'))
-  .resize({ width: 240 })
-  .png({ compressionLevel: 9 })
-  .toFile(path.join(OUT, 'logo-nestle-white.png'))
+// O original vem com a marca em PRETO sobre fundo transparente, e ela e usada
+// sobre o verde escuro do login. Recolorir para branco aqui, e nao no CSS:
+// filter/mix-blend-mode no browser deixam a marca lavada e dependem da cor do
+// fundo. Aqui o alfa original vira mascara de uma chapa branca, o que preserva
+// o antialiasing das curvas e produz um PNG que funciona sobre qualquer fundo.
+{
+  const trimmed = await sharp(path.join(SOURCE, 'logo-nestle.png'))
+    .trim({ threshold: 10 })
+    .resize({ width: 480, withoutEnlargement: true })
+    .png()
+    .toBuffer()
+
+  const { width, height } = await sharp(trimmed).metadata()
+  const alpha = await sharp(trimmed).extractChannel('alpha').toBuffer()
+
+  await sharp({
+    create: { width, height, channels: 3, background: '#ffffff' },
+  })
+    .joinChannel(alpha)
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(OUT, 'logo-nestle-white.png'))
+}
 
 console.log('Ativos de marca gerados em', OUT)
