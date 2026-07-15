@@ -15,6 +15,12 @@ export function useSession() {
  * role_permissions -> permissions. Cada join e coberto por indice e recortado
  * pelas policies de RLS ("user_roles_select_self", "roles_select"), entao o
  * usuario so enxerga os proprios papeis.
+ *
+ * Os !nome_da_fkey nao sao decoracao. Ha DOIS caminhos de profiles ate
+ * organizations (a FK direta e o desvio por user_roles) e DOIS ate user_roles
+ * (profile_id e granted_by). Sem nomear a FK, o PostgREST recusa a consulta
+ * inteira com PGRST201 ("more than one relationship was found") -- e o login
+ * quebra.
  */
 const PROFILE_SELECT = `
   id,
@@ -24,8 +30,8 @@ const PROFILE_SELECT = `
   department,
   status,
   avatar_url,
-  organization:organizations ( id, code, name ),
-  user_roles (
+  organization:organizations!profiles_organization_id_fkey ( id, code, name ),
+  user_roles!user_roles_profile_id_fkey (
     role:roles (
       key,
       name,

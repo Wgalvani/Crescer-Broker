@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "brand:assets": "node scripts/optimize-brand-assets.mjs",
     "db:push": "supabase db push --workdir ..",
-    "db:types": "supabase gen types typescript --linked > src/types/database.types.ts"
+    "db:types": "supabase gen types typescript --linked --workdir .. > src/types/database.types.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
