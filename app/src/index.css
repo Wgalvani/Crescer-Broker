@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/sora';
+
+/*
+ * Paleta oficial do programa CRESCER+BROKERS (PRD secao 8.2), amostrada do
+ * material da Nestle. Nao alterar sem atualizar o PRD.
+ *
+ * Contraste (PRD secao 7 exige WCAG AA):
+ *   brand-lime sobre branco = ~2,0:1 -> REPROVA para texto. Usar lime apenas
+ *   como preenchimento (barra de progresso, badge, fundo de CTA) com ink por
+ *   cima (~11:1). Para texto/link, usar brand-blue sobre branco (~6,2:1).
+ *
+ * As cores de semaforo sao deliberadamente externas a paleta da marca: o PRD
+ * reserva vermelho/ambar exclusivamente para risco e compliance.
+ */
+@theme {
+  --color-brand-blue: #195ab4;
+  --color-brand-blue-dark: #12448a;
+  --color-brand-lime: #7dcd07;
+  --color-brand-lime-light: #98e428;
+  --color-brand-deep-green: #04411a;
+  --color-brand-night-green: #010d05;
+
+  --color-surface: #f5f7f6;
+  --color-ink: #1a1a1a;
+  --color-ink-muted: #5c6360;
+  --color-hairline: #d9dedc;
+
+  --color-status-ok: #16a34a;
+  --color-status-warn: #b45309;
+  --color-status-risk: #dc2626;
+
+  --font-display: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 0.75rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  /* Foco visivel consistente: navegacao por teclado e requisito WCAG AA (PRD secao 7). */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-blue);
+    outline-offset: 2px;
+  }
+}

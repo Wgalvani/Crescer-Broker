@@ -1,0 +1,29 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Segredos: nunca versionar. .env.example e a excecao, e nao tem segredo.
+.env
+.env.*
+!.env.example
+
+# Supabase CLI
+supabase/.temp/
+supabase/.branches/
+
+# Editores / SO
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
