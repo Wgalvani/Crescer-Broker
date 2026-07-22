@@ -180,6 +180,119 @@ export type Database = {
         }
         Relationships: []
       }
+      pre_assessment_entries: {
+        Row: {
+          criterion_id: string
+          id: string
+          notes: string | null
+          pre_assessment_id: string
+          status: Database["public"]["Enums"]["conformity_status"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          criterion_id: string
+          id?: string
+          notes?: string | null
+          pre_assessment_id: string
+          status?: Database["public"]["Enums"]["conformity_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          criterion_id?: string
+          id?: string
+          notes?: string | null
+          pre_assessment_id?: string
+          status?: Database["public"]["Enums"]["conformity_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_assessment_entries_criterion_id_fkey"
+            columns: ["criterion_id"]
+            isOneToOne: false
+            referencedRelation: "criteria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_assessment_entries_pre_assessment_id_fkey"
+            columns: ["pre_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "pre_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_assessment_entries_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pre_assessments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          opened_on: string
+          organization_id: string
+          program_version_id: string
+          status: Database["public"]["Enums"]["assessment_status"]
+          target_audit_on: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          opened_on?: string
+          organization_id: string
+          program_version_id: string
+          status?: Database["public"]["Enums"]["assessment_status"]
+          target_audit_on?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          opened_on?: string
+          organization_id?: string
+          program_version_id?: string
+          status?: Database["public"]["Enums"]["assessment_status"]
+          target_audit_on?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_assessments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_assessments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_assessments_program_version_id_fkey"
+            columns: ["program_version_id"]
+            isOneToOne: false
+            referencedRelation: "program_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -422,7 +535,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      assessment_status: "aberta" | "fechada"
       chapter: "performance" | "excelencia_operacional" | "compliance"
+      conformity_status:
+        | "nao_avaliado"
+        | "conforme"
+        | "parcial"
+        | "nao_conforme"
+        | "nao_aplicavel"
       department:
         | "comercial"
         | "merchandising"
@@ -569,7 +689,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      assessment_status: ["aberta", "fechada"],
       chapter: ["performance", "excelencia_operacional", "compliance"],
+      conformity_status: [
+        "nao_avaliado",
+        "conforme",
+        "parcial",
+        "nao_conforme",
+        "nao_aplicavel",
+      ],
       department: [
         "comercial",
         "merchandising",
