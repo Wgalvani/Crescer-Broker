@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useCurrentUser } from '@/features/auth/hooks'
+import { RoundsEvolution } from '@/components/pre-avaliacao/RoundsEvolution'
 
 /*
  * Placeholder da Fundacao.
@@ -60,6 +61,8 @@ export function DashboardPage() {
           Programa CRESCER+BROKERS 2026 - Livro oficial v3
         </p>
       </div>
+
+      <RoundsEvolution />
 
       <section
         aria-labelledby="catalogo-titulo"

@@ -1,42 +1,64 @@
-import { LayoutDashboard, Gauge, type LucideIcon } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Gauge,
+  TrendingUp,
+  Award,
+  ShieldCheck,
+  Paperclip,
+  type LucideIcon,
+} from 'lucide-react'
 
 /*
  * Navegacao lateral.
  *
- * Dois niveis: itens de topo (Dashboard, Gestao a Vista) e GRUPOS DE CAPITULO
- * coloridos, cada um com subitens = as secoes do livro. A cor forte identifica
- * o capitulo; o submenu recebe uma tinta clara do mesmo tom (pedido do usuario).
+ * Dois niveis: itens de topo (Dashboard, Gestao a Vista) e GRUPOS DE CAPITULO,
+ * cada um com cor propria e subitens = as secoes do livro. Cada subitem tem um
+ * NUMERO (badge) e um nome: "2.1" (Excelencia) e "2.11" (Compliance) sao topicos
+ * diferentes e o badge colorido por capitulo evita a confusao.
  *
- * Cores escolhidas dentro do que o index.css permite: o lime reprova AA como
- * texto; vermelho/ambar sao reservados a risco. Por isso Performance=azul,
- * Excelencia=verde da marca, Compliance=ambar (e literalmente o capitulo de
- * risco/desclassificacao) e Anexos=neutro. Item ativo usa a cor forte com texto
- * branco (passa AA); subitem inativo usa texto ink sobre a tinta clara.
+ * Cores dentro do que o index.css permite (lime reprova AA como texto; a
+ * excecao e lime como PREENCHIMENTO com texto ink por cima, que passa). Por isso
+ * cada capitulo tem uma familia: Performance=azul, Excelencia=verde+lime,
+ * Compliance=ambar (o proprio capitulo de risco), Anexos=neutro. Item ativo usa
+ * a cor forte; badge ativo fica solido; texto sempre com contraste AA.
  *
- * As secoes espelham o livro oficial (ver a Skill livro-crescer-brokers-2026).
- * Compliance segue a convencao da Skill: capitulo 2.10 com itens 2.11-2.16.
+ * Secoes conferidas contra a Skill livro-crescer-brokers-2026. Compliance segue
+ * a convencao da Skill: capitulo 2.10 (indice) com itens 2.11-2.16 (corpo).
  */
 
-export type NavLeaf = {
+export type NavTopItem = {
   label: string
-  /** Rota. Pode conter hash de secao: '/pre-avaliacao/excelencia#sec-2-1'. */
   to: string
-}
-
-export type NavTopItem = NavLeaf & {
   icon: LucideIcon
   perm?: string
 }
 
+export type ChapterItem = {
+  /** Numero da secao, exibido em badge: '2.1', '2.11'. */
+  num: string
+  label: string
+  /** Rota com hash de secao: '/pre-avaliacao/excelencia#sec-2-1'. */
+  to: string
+}
+
 export type ChapterAccent = {
-  /** Cor do rotulo do cabecalho do grupo. */
-  header: string
-  /** Painel do submenu: tinta clara + borda lateral do mesmo tom. */
-  panel: string
-  /** Subitem ativo: cor forte + texto branco. */
+  icon: LucideIcon
+  /** Espinha colorida do card (border-l-4). */
+  spine: string
+  /** Cor do rotulo do capitulo. */
+  label: string
+  /** Fundo tenue do cabecalho do card. */
+  headerBg: string
+  /** Chip do icone (preenchido, forte). */
+  iconChip: string
+  /** Linha do subitem ativo (preenchida). */
   itemActive: string
-  /** Subitem inativo: texto ink + hover na tinta do tom. */
+  /** Linha do subitem inativo (com hover). */
   itemIdle: string
+  /** Badge do numero quando ativo. */
+  numActive: string
+  /** Badge do numero quando inativo. */
+  numIdle: string
 }
 
 export type NavChapter = {
@@ -44,10 +66,9 @@ export type NavChapter = {
   label: string
   /** Pagina base do capitulo (cabecalho aponta pra ca, sem hash). */
   to: string
-  /** Permissao exigida. Ausente = qualquer autenticado. */
   perm?: string
   accent: ChapterAccent
-  items: NavLeaf[]
+  items: ChapterItem[]
 }
 
 export const NAV_TOP: NavTopItem[] = [
@@ -56,31 +77,55 @@ export const NAV_TOP: NavTopItem[] = [
 ]
 
 const ACCENT_PERFORMANCE: ChapterAccent = {
-  header: 'text-brand-blue',
-  panel: 'border-brand-blue/25 bg-brand-blue/5',
-  itemActive: 'bg-brand-blue text-white',
-  itemIdle: 'text-ink hover:bg-brand-blue/10',
+  icon: TrendingUp,
+  spine: 'border-brand-blue',
+  label: 'text-brand-blue',
+  headerBg: 'bg-brand-blue/6',
+  iconChip: 'bg-brand-blue text-white',
+  itemActive: 'bg-brand-blue text-white shadow-sm',
+  itemIdle: 'text-ink hover:bg-brand-blue/8',
+  numActive: 'bg-white/20 text-white',
+  numIdle: 'bg-brand-blue/12 text-brand-blue',
 }
 
+// Familia verde/lime da marca. Lime so aparece como PREENCHIMENTO com texto ink
+// por cima (AA ~11:1); como texto sobre branco reprovaria.
 const ACCENT_EXCELENCIA: ChapterAccent = {
-  header: 'text-brand-deep-green',
-  panel: 'border-brand-deep-green/25 bg-brand-deep-green/5',
-  itemActive: 'bg-brand-deep-green text-white',
-  itemIdle: 'text-ink hover:bg-brand-deep-green/10',
+  icon: Award,
+  spine: 'border-brand-lime',
+  label: 'text-brand-deep-green',
+  headerBg: 'bg-brand-lime/10',
+  iconChip: 'bg-brand-lime text-ink',
+  itemActive: 'bg-brand-lime text-ink shadow-sm',
+  itemIdle: 'text-ink hover:bg-brand-lime/15',
+  numActive: 'bg-ink/15 text-ink',
+  numIdle: 'bg-brand-lime/25 text-brand-deep-green',
 }
 
+// Ambar: o proprio capitulo de risco/desclassificacao (index.css reserva ambar
+// para semantica de risco/compliance), entao a cor e coerente, nao decoracao.
 const ACCENT_COMPLIANCE: ChapterAccent = {
-  header: 'text-status-warn',
-  panel: 'border-status-warn/25 bg-status-warn/5',
-  itemActive: 'bg-status-warn text-white',
-  itemIdle: 'text-ink hover:bg-status-warn/10',
+  icon: ShieldCheck,
+  spine: 'border-status-warn',
+  label: 'text-status-warn',
+  headerBg: 'bg-status-warn/8',
+  iconChip: 'bg-status-warn text-white',
+  itemActive: 'bg-status-warn text-white shadow-sm',
+  itemIdle: 'text-ink hover:bg-status-warn/8',
+  numActive: 'bg-white/20 text-white',
+  numIdle: 'bg-status-warn/12 text-status-warn',
 }
 
 const ACCENT_ANEXOS: ChapterAccent = {
-  header: 'text-ink-muted',
-  panel: 'border-hairline bg-ink/[0.03]',
-  itemActive: 'bg-ink-muted text-white',
+  icon: Paperclip,
+  spine: 'border-ink-muted',
+  label: 'text-ink-muted',
+  headerBg: 'bg-ink/4',
+  iconChip: 'bg-ink-muted text-white',
+  itemActive: 'bg-ink-muted text-white shadow-sm',
   itemIdle: 'text-ink hover:bg-ink/5',
+  numActive: 'bg-white/25 text-white',
+  numIdle: 'bg-ink/8 text-ink-muted',
 }
 
 export const NAV_CHAPTERS: NavChapter[] = [
@@ -91,11 +136,11 @@ export const NAV_CHAPTERS: NavChapter[] = [
     perm: 'program.read',
     accent: ACCENT_PERFORMANCE,
     items: [
-      { label: '1.1 VBC', to: '/programa/performance#sec-1-1' },
-      { label: '1.2 Cobertura', to: '/programa/performance#sec-1-2' },
-      { label: '1.3 Sortimento Farma B', to: '/programa/performance#sec-1-3' },
-      { label: '1.4 BEES', to: '/programa/performance#sec-1-4' },
-      { label: '1.5 Ruptura / Positivação', to: '/programa/performance#sec-1-5' },
+      { num: '1.1', label: 'VBC', to: '/programa/performance#sec-1-1' },
+      { num: '1.2', label: 'Cobertura', to: '/programa/performance#sec-1-2' },
+      { num: '1.3', label: 'Sortimento Farma B', to: '/programa/performance#sec-1-3' },
+      { num: '1.4', label: 'BEES', to: '/programa/performance#sec-1-4' },
+      { num: '1.5', label: 'Ruptura / Positivação', to: '/programa/performance#sec-1-5' },
     ],
   },
   {
@@ -105,15 +150,15 @@ export const NAV_CHAPTERS: NavChapter[] = [
     perm: 'scoring.read_own',
     accent: ACCENT_EXCELENCIA,
     items: [
-      { label: '2.1 Pessoas', to: '/pre-avaliacao/excelencia#sec-2-1' },
-      { label: '2.2 Planejamento de Vendas', to: '/pre-avaliacao/excelencia#sec-2-2' },
-      { label: '2.3 Processos de Vendas', to: '/pre-avaliacao/excelencia#sec-2-3' },
-      { label: '2.4 Vendedor', to: '/pre-avaliacao/excelencia#sec-2-4' },
-      { label: '2.5 Promotor de Vendas', to: '/pre-avaliacao/excelencia#sec-2-5' },
-      { label: '2.6 Desenvolvimento da Rota', to: '/pre-avaliacao/excelencia#sec-2-6' },
-      { label: '2.7 TI', to: '/pre-avaliacao/excelencia#sec-2-7' },
-      { label: '2.8 Supply Chain', to: '/pre-avaliacao/excelencia#sec-2-8' },
-      { label: '2.9 Operações Logísticas', to: '/pre-avaliacao/excelencia#sec-2-9' },
+      { num: '2.1', label: 'Pessoas', to: '/pre-avaliacao/excelencia#sec-2-1' },
+      { num: '2.2', label: 'Planejamento de Vendas', to: '/pre-avaliacao/excelencia#sec-2-2' },
+      { num: '2.3', label: 'Processos de Vendas', to: '/pre-avaliacao/excelencia#sec-2-3' },
+      { num: '2.4', label: 'Vendedor', to: '/pre-avaliacao/excelencia#sec-2-4' },
+      { num: '2.5', label: 'Promotor de Vendas', to: '/pre-avaliacao/excelencia#sec-2-5' },
+      { num: '2.6', label: 'Desenvolvimento da Rota', to: '/pre-avaliacao/excelencia#sec-2-6' },
+      { num: '2.7', label: 'TI', to: '/pre-avaliacao/excelencia#sec-2-7' },
+      { num: '2.8', label: 'Supply Chain', to: '/pre-avaliacao/excelencia#sec-2-8' },
+      { num: '2.9', label: 'Operações Logísticas', to: '/pre-avaliacao/excelencia#sec-2-9' },
     ],
   },
   {
@@ -123,12 +168,12 @@ export const NAV_CHAPTERS: NavChapter[] = [
     perm: 'scoring.read_own',
     accent: ACCENT_COMPLIANCE,
     items: [
-      { label: '2.11 Verbas em aberto', to: '/pre-avaliacao/compliance#sec-2-11' },
-      { label: '2.12 Alvarás e certidões', to: '/pre-avaliacao/compliance#sec-2-12' },
-      { label: '2.13 Expedição salvage/bloqueados', to: '/pre-avaliacao/compliance#sec-2-13' },
-      { label: '2.14 Transpasse', to: '/pre-avaliacao/compliance#sec-2-14' },
-      { label: '2.15 Escrituração', to: '/pre-avaliacao/compliance#sec-2-15' },
-      { label: '2.16 Produtos vencidos no PDV', to: '/pre-avaliacao/compliance#sec-2-16' },
+      { num: '2.11', label: 'Verbas em aberto', to: '/pre-avaliacao/compliance#sec-2-11' },
+      { num: '2.12', label: 'Alvarás e certidões', to: '/pre-avaliacao/compliance#sec-2-12' },
+      { num: '2.13', label: 'Expedição salvage/bloqueados', to: '/pre-avaliacao/compliance#sec-2-13' },
+      { num: '2.14', label: 'Transpasse', to: '/pre-avaliacao/compliance#sec-2-14' },
+      { num: '2.15', label: 'Escrituração', to: '/pre-avaliacao/compliance#sec-2-15' },
+      { num: '2.16', label: 'Produtos vencidos no PDV', to: '/pre-avaliacao/compliance#sec-2-16' },
     ],
   },
   {
@@ -137,6 +182,6 @@ export const NAV_CHAPTERS: NavChapter[] = [
     to: '/programa/anexos',
     perm: 'program.read',
     accent: ACCENT_ANEXOS,
-    items: [{ label: 'Anexos I a XI', to: '/programa/anexos' }],
+    items: [{ num: 'I–XI', label: 'Roteiros, kits e certidões', to: '/programa/anexos' }],
   },
 ]

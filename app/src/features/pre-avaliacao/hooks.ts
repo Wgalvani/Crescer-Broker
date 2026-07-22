@@ -10,6 +10,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { queryClient } from '@/lib/queryClient'
 import { useCurrentUser } from '@/features/auth/hooks'
+import { readinessFromStatuses } from '@/features/pre-avaliacao/status'
 import type {
   Chapter,
   Criterion,
@@ -71,6 +72,76 @@ export function useRodadas() {
         .order('opened_on', { ascending: false })
       if (error) throw error
       return data as Rodada[]
+    },
+  })
+}
+
+/**
+ * Evolucao da prontidao entre rodadas -- base do comparativo no Dashboard.
+ *
+ * Prontidao geral por rodada nos capitulos avaliados (Excelencia + Compliance):
+ * a primeira rodada e a linha de base; as seguintes mostram se subiu ou caiu.
+ * Denominador = todos os criterios do escopo (criterio sem lancamento na rodada
+ * conta como pendente), exceto os marcados 'nao se aplica'.
+ *
+ * Nota de RLS: um usuario de departamento so enxerga os lancamentos da sua area,
+ * entao a evolucao dele reflete a sua fatia; monitor/admin veem o todo.
+ */
+const CHAPTERS_AVALIADOS: Chapter[] = ['excelencia_operacional', 'compliance']
+
+export function useRoundsEvolution() {
+  return useQuery({
+    queryKey: ['pre-avaliacao', 'rounds-evolution'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const rounds = await supabase
+        .from('pre_assessments')
+        .select('id, label, opened_on, status')
+        .order('opened_on', { ascending: true })
+      if (rounds.error) throw rounds.error
+
+      const criteria = await supabase
+        .from('criteria')
+        .select('id, chapter')
+        .in('chapter', CHAPTERS_AVALIADOS)
+        .eq('active', true)
+      if (criteria.error) throw criteria.error
+
+      const entries = await supabase
+        .from('pre_assessment_entries')
+        .select('pre_assessment_id, criterion_id, status')
+      if (entries.error) throw entries.error
+
+      const scopeIds = new Set((criteria.data ?? []).map((c) => c.id))
+      const totalScope = scopeIds.size
+
+      // status por (rodada, criterio)
+      const byRound = new Map<string, Map<string, Entry['status']>>()
+      for (const e of (entries.data as Pick<Entry, 'pre_assessment_id' | 'criterion_id' | 'status'>[]) ?? []) {
+        if (!scopeIds.has(e.criterion_id)) continue
+        let m = byRound.get(e.pre_assessment_id)
+        if (!m) {
+          m = new Map()
+          byRound.set(e.pre_assessment_id, m)
+        }
+        m.set(e.criterion_id, e.status)
+      }
+
+      return (rounds.data ?? []).map((round) => {
+        const marks = byRound.get(round.id)
+        const statuses: Entry['status'][] = []
+        for (const id of scopeIds) {
+          statuses.push(marks?.get(id) ?? 'nao_avaliado')
+        }
+        return {
+          id: round.id,
+          label: round.label,
+          opened_on: round.opened_on,
+          status: round.status,
+          readiness: readinessFromStatuses(statuses),
+          totalScope,
+        }
+      })
     },
   })
 }
@@ -215,8 +286,17 @@ export function useCloseRodada() {
 }
 
 /**
- * Salva o estado de um criterio na rodada (upsert na chave rodada+criterio).
- * updated_by carimbado do usuario -- a RLS rejeita gravar em nome de outro.
+ * Salva o estado de um criterio na rodada.
+ *
+ * NAO usar upsert do PostgREST aqui: no conflito ele monta um ON CONFLICT DO
+ * UPDATE com TODAS as colunas do payload, inclusive pre_assessment_id e
+ * criterion_id -- justamente as que a migracao revoga do UPDATE (para ninguem
+ * mover um lancamento de rodada/criterio). O Postgres cobra esse privilegio de
+ * coluna ate na primeira insercao e barra a operacao inteira, para todos.
+ *
+ * Entao: UPDATE primeiro (toca so status/notes/updated_by, que sao liberados);
+ * se nenhuma linha casou, INSERT. updated_by carimbado do usuario -- a RLS
+ * rejeita gravar em nome de outro.
  */
 export function useUpsertEntry(chapter: Chapter, rodadaId: string) {
   const { data: currentUser } = useCurrentUser()
@@ -228,16 +308,27 @@ export function useUpsertEntry(chapter: Chapter, rodadaId: string) {
       notes: string | null
     }) => {
       if (!currentUser) throw new Error('Sessao nao carregada.')
-      const { error } = await supabase.from('pre_assessment_entries').upsert(
-        {
-          pre_assessment_id: rodadaId,
-          criterion_id: input.criterionId,
+
+      const updated = await supabase
+        .from('pre_assessment_entries')
+        .update({
           status: input.status,
           notes: input.notes,
           updated_by: currentUser.profile.id,
-        },
-        { onConflict: 'pre_assessment_id,criterion_id' }
-      )
+        })
+        .eq('pre_assessment_id', rodadaId)
+        .eq('criterion_id', input.criterionId)
+        .select('id')
+      if (updated.error) throw updated.error
+      if (updated.data && updated.data.length > 0) return // ja existia
+
+      const { error } = await supabase.from('pre_assessment_entries').insert({
+        pre_assessment_id: rodadaId,
+        criterion_id: input.criterionId,
+        status: input.status,
+        notes: input.notes,
+        updated_by: currentUser.profile.id,
+      })
       if (error) throw error
     },
     onSuccess: () => {

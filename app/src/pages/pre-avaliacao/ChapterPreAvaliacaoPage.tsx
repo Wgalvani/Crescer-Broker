@@ -8,6 +8,7 @@ import {
   useUpsertEntry,
 } from '@/features/pre-avaliacao/hooks'
 import { computeReadiness } from '@/features/pre-avaliacao/status'
+import { useCurrentUser } from '@/features/auth/hooks'
 import type { Chapter } from '@/features/pre-avaliacao/types'
 
 export function ChapterPreAvaliacaoPage({
@@ -18,9 +19,13 @@ export function ChapterPreAvaliacaoPage({
   heading: string
 }) {
   const location = useLocation()
+  const { data: currentUser } = useCurrentUser()
   const { data: rodada, isLoading: loadingRodada } = useRodadaAberta()
   const { data: sections, isLoading: loadingSections } = useChapterEntries(chapter, rodada?.id)
   const upsert = useUpsertEntry(chapter, rodada?.id ?? '')
+
+  const isAdmin = currentUser?.roles.some((r) => r.key === 'admin') ?? false
+  const canWrite = isAdmin || (currentUser?.permissions.has('scoring.write') ?? false)
 
   // Rola ate a secao quando o menu lateral navega com hash (#sec-2-1).
   useEffect(() => {
@@ -53,7 +58,8 @@ export function ChapterPreAvaliacaoPage({
     )
   }
 
-  const readOnly = rodada.status !== 'aberta'
+  const rodadaFechada = rodada.status !== 'aberta'
+  const readOnly = rodadaFechada || !canWrite
   const allItems = (sections ?? []).flatMap((s) => s.items)
   const readiness = computeReadiness(allItems)
 
@@ -72,6 +78,14 @@ export function ChapterPreAvaliacaoPage({
       </div>
 
       <ReadinessGauge readiness={readiness} label={`Prontidão de ${heading}`} />
+
+      {readOnly && (
+        <p className="border-status-warn/30 bg-amber-50 text-ink rounded-lg border px-3 py-2 text-sm">
+          {rodadaFechada
+            ? 'Rodada fechada — as marcações estão congeladas e não podem ser editadas.'
+            : 'Acesso somente leitura: seu perfil não tem permissão para editar a pré-avaliação (scoring.write). Fale com a equipe de TI para liberar.'}
+        </p>
+      )}
 
       {loadingSections ? (
         <p className="text-ink-muted text-sm">Carregando critérios...</p>

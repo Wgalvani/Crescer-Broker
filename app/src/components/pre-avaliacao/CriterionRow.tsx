@@ -28,6 +28,7 @@ export function CriterionRow({
 
   const [notes, setNotes] = useState(savedNotes)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [showRule, setShowRule] = useState(false)
 
   // Mantem o campo em sincronia quando a query revalida apos salvar.
@@ -37,12 +38,22 @@ export function CriterionRow({
 
   async function persist(status: ConformityStatus, nextNotes: string) {
     setSaving(true)
+    setSaveError(null)
     try {
       await onSave({
         criterionId: criterion.id,
         status,
         notes: nextNotes.trim() === '' ? null : nextNotes.trim(),
       })
+    } catch (err) {
+      // Sem catch, a rejeicao (ex.: RLS bloqueando a escrita) sumia e o clique
+      // parecia nao fazer nada. Agora o motivo aparece na linha.
+      const message = err instanceof Error ? err.message : String(err)
+      setSaveError(
+        /row-level security|permission|denied/i.test(message)
+          ? 'Sem permissão para editar este critério.'
+          : `Não foi possível salvar: ${message}`
+      )
     } finally {
       setSaving(false)
     }
@@ -122,6 +133,12 @@ export function CriterionRow({
         }}
         className="border-hairline focus:border-brand-blue text-ink mt-2 w-full resize-y rounded-lg border px-3 py-2 text-sm outline-none read-only:opacity-70"
       />
+
+      {saveError && (
+        <p role="alert" className="text-status-risk mt-1 text-xs">
+          {saveError}
+        </p>
+      )}
     </div>
   )
 }

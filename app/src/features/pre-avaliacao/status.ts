@@ -75,17 +75,17 @@ export type Readiness = {
 }
 
 /**
- * Prontidao de um conjunto de criterios. 'nao_avaliado' conta no denominador
- * (pendente e nao-pronto); 'nao_aplicavel' fica de fora. Se nada se aplica,
- * percent = 0 e applicable = 0 -- a UI mostra "0 de 0" em vez de dividir por zero.
+ * Prontidao a partir de uma lista de estados. 'nao_avaliado' conta no
+ * denominador (pendente e nao-pronto); 'nao_aplicavel' fica de fora. Se nada se
+ * aplica, percent = 0 e applicable = 0 -- a UI mostra "0 de 0" sem dividir por
+ * zero. Base tanto da tela do capitulo quanto da evolucao entre rodadas.
  */
-export function computeReadiness(items: CriterionWithEntry[]): Readiness {
+export function readinessFromStatuses(statuses: ConformityStatus[]): Readiness {
   let applicable = 0
   let assessed = 0
   let weightSum = 0
 
-  for (const { entry } of items) {
-    const status: ConformityStatus = entry?.status ?? 'nao_avaliado'
+  for (const status of statuses) {
     const meta = CONFORMITY_META[status]
     if (meta.weight === null) continue // nao se aplica: fora do denominador
     applicable += 1
@@ -96,7 +96,12 @@ export function computeReadiness(items: CriterionWithEntry[]): Readiness {
   return {
     applicable,
     assessed,
-    total: items.length,
+    total: statuses.length,
     percent: applicable === 0 ? 0 : Math.round((weightSum / applicable) * 100),
   }
+}
+
+/** Prontidao de um conjunto de criterios+lancamentos (criterio sem entry = pendente). */
+export function computeReadiness(items: CriterionWithEntry[]): Readiness {
+  return readinessFromStatuses(items.map((i) => i.entry?.status ?? 'nao_avaliado'))
 }

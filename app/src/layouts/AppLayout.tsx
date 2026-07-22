@@ -1,24 +1,20 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { Bell, ChevronDown, LogOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { cn, initials } from '@/lib/utils'
-import { NAV_TOP, NAV_CHAPTERS } from '@/config/nav'
+import { initials } from '@/lib/utils'
+import { ProgramNav } from '@/components/layout/ProgramNav'
 import { SeloMissao1BIWatermark, Wordmark } from '@/components/brand/BrandLogo'
 import { useCurrentUser } from '@/features/auth/hooks'
 
 export function AppLayout() {
   const { data: currentUser } = useCurrentUser()
   const navigate = useNavigate()
-  const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const isAdmin = currentUser?.roles.some((r) => r.key === 'admin') ?? false
   const canSee = (perm?: string) =>
     !perm || isAdmin || (currentUser?.permissions.has(perm) ?? false)
-
-  const topNav = NAV_TOP.filter((item) => canSee(item.perm))
-  const chapters = NAV_CHAPTERS.filter((chapter) => canSee(chapter.perm))
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -121,72 +117,7 @@ export function AppLayout() {
       </header>
 
       <div className="relative z-10 mx-auto flex max-w-7xl gap-6 px-4 py-6">
-        <nav aria-label="Navegacao do programa" className="hidden w-60 shrink-0 md:block">
-          <ul className="space-y-1">
-            {topNav.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium',
-                      isActive ? 'bg-brand-blue text-white' : 'text-ink hover:bg-white'
-                    )
-                  }
-                >
-                  <item.icon className="size-4" aria-hidden="true" />
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-4 space-y-3">
-            {chapters.map((chapter) => {
-              return (
-                <div key={chapter.key}>
-                  <Link
-                    to={chapter.to}
-                    className={cn(
-                      'font-display block px-3 text-xs font-bold tracking-wide uppercase',
-                      chapter.accent.header
-                    )}
-                  >
-                    {chapter.label}
-                  </Link>
-                  <ul
-                    className={cn(
-                      'mt-1 space-y-0.5 rounded-lg border-l-2 py-1 pr-1 pl-1',
-                      chapter.accent.panel
-                    )}
-                  >
-                    {chapter.items.map((item) => {
-                      const [itemPath, itemHash] = item.to.split('#')
-                      const active =
-                        location.pathname === itemPath &&
-                        (itemHash ? location.hash === `#${itemHash}` : location.hash === '')
-                      return (
-                        <li key={item.to}>
-                          <Link
-                            to={item.to}
-                            aria-current={active ? 'page' : undefined}
-                            className={cn(
-                              'block rounded-md px-3 py-1.5 text-sm',
-                              active ? chapter.accent.itemActive : chapter.accent.itemIdle
-                            )}
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              )
-            })}
-          </div>
-        </nav>
+        <ProgramNav canSee={canSee} className="hidden md:block" />
 
         <main id="conteudo" className="min-w-0 flex-1">
           <Outlet />
