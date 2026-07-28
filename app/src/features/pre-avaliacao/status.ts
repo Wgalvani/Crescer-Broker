@@ -34,8 +34,11 @@ export const CONFORMITY_META: Record<ConformityStatus, StatusMeta> = {
   nao_avaliado: {
     label: 'Não avaliado',
     weight: 0,
-    dotClass: 'bg-hairline',
-    activeClass: 'bg-surface text-ink border-hairline',
+    // Ardosia (slate) SOLIDA quando ativo: e o estado padrao (pendente), entao
+    // precisa saltar aos olhos -- o tint claro sumia ao lado do laranja. Fora do
+    // semaforo ok/warn/risk de proposito (nao e desempenho, e "falta avaliar").
+    dotClass: 'bg-slate-500',
+    activeClass: 'bg-slate-600 text-white border-slate-600',
   },
   conforme: {
     label: 'Conforme',
@@ -58,8 +61,10 @@ export const CONFORMITY_META: Record<ConformityStatus, StatusMeta> = {
   nao_aplicavel: {
     label: 'Não se aplica',
     weight: null,
-    dotClass: 'bg-ink-muted',
-    activeClass: 'bg-ink-muted/10 text-ink-muted border-ink-muted/30',
+    // Violeta: estado distinto e proposital (fora do denominador), com cor
+    // propria para se separar tanto do pendente quanto do semaforo.
+    dotClass: 'bg-violet-400',
+    activeClass: 'bg-violet-100 text-violet-700 border-violet-300',
   },
 }
 

@@ -110,9 +110,12 @@ export function SeloMissao1BI({ className }: { className?: string }) {
  * aria-hidden: decoracao pura; o texto do selo nao acrescenta nada a tela.
  */
 export function SeloMissao1BIWatermark({
+  side = 'right',
   className,
   imgClassName,
 }: {
+  /** Lado da janela onde o selo fica ancorado. */
+  side?: 'left' | 'right'
   className?: string
   imgClassName?: string
 }) {
@@ -120,7 +123,8 @@ export function SeloMissao1BIWatermark({
     <div
       aria-hidden="true"
       className={cn(
-        'pointer-events-none fixed inset-y-0 right-0 z-0 flex items-center overflow-hidden pr-4 lg:pr-10',
+        'pointer-events-none fixed inset-y-0 z-0 flex items-center overflow-hidden',
+        side === 'right' ? 'right-0 justify-end pr-4 lg:pr-10' : 'left-0 justify-start pl-4 lg:pl-10',
         className
       )}
     >

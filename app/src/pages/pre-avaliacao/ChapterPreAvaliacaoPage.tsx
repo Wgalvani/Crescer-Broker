@@ -8,6 +8,7 @@ import {
   useUpsertEntry,
 } from '@/features/pre-avaliacao/hooks'
 import { computeReadiness } from '@/features/pre-avaliacao/status'
+import { filterSectionsByDepartment } from '@/features/pre-avaliacao/scope'
 import { useCurrentUser } from '@/features/auth/hooks'
 import type { Chapter } from '@/features/pre-avaliacao/types'
 
@@ -26,6 +27,12 @@ export function ChapterPreAvaliacaoPage({
 
   const isAdmin = currentUser?.roles.some((r) => r.key === 'admin') ?? false
   const canWrite = isAdmin || (currentUser?.permissions.has('scoring.write') ?? false)
+
+  // Recorte por setor: cada perfil ve so as secoes do seu department; quem tem
+  // scoring.read_all/admin ve tudo (igual a RLS).
+  const seesAll = isAdmin || (currentUser?.permissions.has('scoring.read_all') ?? false)
+  const department = currentUser?.profile.department ?? null
+  const visibleSections = filterSectionsByDepartment(sections ?? [], department, seesAll)
 
   // Rola ate a secao quando o menu lateral navega com hash (#sec-2-1).
   useEffect(() => {
@@ -60,7 +67,7 @@ export function ChapterPreAvaliacaoPage({
 
   const rodadaFechada = rodada.status !== 'aberta'
   const readOnly = rodadaFechada || !canWrite
-  const allItems = (sections ?? []).flatMap((s) => s.items)
+  const allItems = visibleSections.flatMap((s) => s.items)
   const readiness = computeReadiness(allItems)
 
   return (
@@ -93,7 +100,7 @@ export function ChapterPreAvaliacaoPage({
         <p className="text-ink-muted text-sm">Nenhum critério neste capítulo.</p>
       ) : (
         <div className="space-y-4">
-          {(sections ?? []).map((group) => (
+          {visibleSections.map((group) => (
             <SectionCard
               key={group.section}
               group={group}

@@ -3,6 +3,8 @@ import { ReadinessGauge } from '@/components/pre-avaliacao/ReadinessGauge'
 import { GapsRadarSection } from '@/components/pre-avaliacao/GapsRadarSection'
 import { useChapterEntries, useRodadaAberta } from '@/features/pre-avaliacao/hooks'
 import { computeReadiness } from '@/features/pre-avaliacao/status'
+import { filterSectionsByDepartment } from '@/features/pre-avaliacao/scope'
+import { useCurrentUser } from '@/features/auth/hooks'
 import type { Chapter } from '@/features/pre-avaliacao/types'
 
 const CHAPTERS: { chapter: Chapter; label: string; to: string }[] = [
@@ -21,9 +23,18 @@ function ChapterCard({
   to: string
   rodadaId: string
 }) {
+  const { data: currentUser } = useCurrentUser()
   const { data: sections, isLoading } = useChapterEntries(chapter, rodadaId)
-  const items = (sections ?? []).flatMap((s) => s.items)
+
+  const isAdmin = currentUser?.roles.some((r) => r.key === 'admin') ?? false
+  const seesAll = isAdmin || (currentUser?.permissions.has('scoring.read_all') ?? false)
+  const department = currentUser?.profile.department ?? null
+  const visible = filterSectionsByDepartment(sections ?? [], department, seesAll)
+  const items = visible.flatMap((s) => s.items)
   const readiness = computeReadiness(items)
+
+  // Capitulo sem nenhuma secao do setor do usuario: nao mostra o card.
+  if (!isLoading && items.length === 0) return null
 
   return (
     <Link to={to} className="block rounded-xl transition-shadow hover:shadow-md">
