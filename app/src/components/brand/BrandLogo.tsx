@@ -94,18 +94,20 @@ export function SeloMissao1BI({ className }: { className?: string }) {
 }
 
 /**
- * O mesmo selo como marca d'agua de fundo -- o tema do ano com presenca, sem
- * disputar com o lockup.
+ * O selo do ano como marca d'agua discreta, ancorada a DIREITA da janela.
  *
- * O `mix-blend-mode: luminosity` e o que torna isto possivel: ele toma a
- * LUMINANCIA do selo e a COR do fundo, entao o desenho aparece inteiro mas
- * assume a paleta da tela. Sem ele, o roxo/laranja da campanha vira um anel
- * amarronzado sobre o verde do programa (PRD 8.2) e suja a tela -- testado.
- * Como a cor deixa de brigar, da para dobrar a opacidade e o selo fica maior e
- * mais nitido do que ficaria colorido.
+ * `fixed inset-y-0 right-0`: gruda na borda direita do viewport e acompanha o
+ * scroll, sempre centralizado na vertical da TELA (nao do documento, que e alto
+ * e jogaria o selo para o meio da pagina). z-0 o mantem atras do conteudo
+ * (`relative z-10`) e do cabecalho (`z-50`).
  *
- * aria-hidden: e decoracao pura, e o texto do selo nao acrescenta nada que a
- * tela ja nao diga.
+ * `grayscale`: o selo original e roxo/laranja e brigaria com o verde do
+ * programa. Neutralizado e a 6% de opacidade, vira textura de canto -- presente,
+ * sem competir com numeros e semaforos (contraste AA do PRD secao 7 preservado,
+ * ja que os cards sao brancos e opacos por cima). Trocou o mix-blend-luminosity
+ * anterior, que exigia o selo centralizado e sem stacking context proprio.
+ *
+ * aria-hidden: decoracao pura; o texto do selo nao acrescenta nada a tela.
  */
 export function SeloMissao1BIWatermark({
   className,
@@ -115,24 +117,17 @@ export function SeloMissao1BIWatermark({
   imgClassName?: string
 }) {
   return (
-    // Sem z-index e sem position:fixed aqui, de proposito: os dois criam
-    // stacking context, o que ISOLA o mix-blend-mode e faz o selo voltar a
-    // exibir roxo/laranja. A sobreposicao correta vem da ordem no DOM -- o
-    // conteudo, que vem depois e e `relative`, pinta por cima.
     <div
       aria-hidden="true"
       className={cn(
-        'pointer-events-none absolute inset-0 grid place-items-center overflow-hidden',
+        'pointer-events-none fixed inset-y-0 right-0 z-0 flex items-center overflow-hidden pr-4 lg:pr-10',
         className
       )}
     >
       <img
         src="/brand/selo-missao-1bi.webp"
         alt=""
-        className={cn(
-          'h-auto w-[min(560px,88vw)] opacity-[0.18] mix-blend-luminosity',
-          imgClassName
-        )}
+        className={cn('h-auto w-[min(340px,32vw)] opacity-[0.06] grayscale', imgClassName)}
       />
     </div>
   )

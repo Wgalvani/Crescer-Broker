@@ -27,7 +27,7 @@ export function AppLayout() {
           claro (--color-surface) e a marca d'agua nao pode competir com numeros
           e semaforos. Os cards sao brancos e opacos, entao o texto mantem o
           contraste AA que o PRD secao 7 exige -- o selo so aparece nas margens. */}
-      <SeloMissao1BIWatermark imgClassName="w-[min(680px,70vw)] opacity-[0.06]" />
+      <SeloMissao1BIWatermark imgClassName="w-[min(340px,32vw)] opacity-[0.06]" />
 
       {/* Requisito WCAG AA (PRD secao 7): pular a navegacao pelo teclado. */}
       <a
