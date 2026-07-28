@@ -1,6 +1,7 @@
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { NAV_TOP, NAV_CHAPTERS } from '@/config/nav'
+import { NAV_TOP, NAV_CHAPTERS, type ChapterItem, type Department } from '@/config/nav'
 
 /*
  * Navegacao lateral do programa. Cada capitulo e um card com espinha colorida,
@@ -8,22 +9,76 @@ import { NAV_TOP, NAV_CHAPTERS } from '@/config/nav'
  * fisico. Item ativo fica PREENCHIDO na cor do capitulo (realce inconfundivel
  * ao clicar); o numero em badge distingue topicos de numero parecido (2.1 x 2.11).
  *
- * `canSee` filtra por permissao (mesmo criterio do AppLayout). Extraido em
- * componente para poder ser pre-visualizado fora da area logada.
+ * DOIS niveis de recorte:
+ *   - `canSee(perm)`: permissao (mesmo criterio do AppLayout) -- vale para os
+ *     itens de topo (Dashboard, Gestao a Vista, Usuarios).
+ *   - por SETOR: cada perfil ve so os capitulos/secoes do seu department. Quem
+ *     tem scoring.read_all/admin (`seesAllChapters`) ve tudo. A base e
+ *     item.departments (de criteria.responsible_department), igual a RLS.
+ *
+ * Colapsavel: `collapsed` recolhe a barra inteira num trilho fino so com o botao
+ * de expandir; o estado vive no AppLayout (persistido em localStorage).
  */
 export function ProgramNav({
   canSee,
+  department,
+  seesAllChapters,
+  collapsed,
+  onToggleCollapsed,
   className,
 }: {
   canSee: (perm?: string) => boolean
+  department: Department | null
+  seesAllChapters: boolean
+  collapsed: boolean
+  onToggleCollapsed: () => void
   className?: string
 }) {
   const location = useLocation()
+
+  if (collapsed) {
+    return (
+      <nav
+        aria-label="Navegacao do programa"
+        className={cn('w-10 shrink-0', className)}
+      >
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          aria-expanded={false}
+          aria-label="Expandir menu"
+          title="Expandir menu"
+          className="text-ink-muted hover:bg-white hover:text-ink grid size-9 place-items-center rounded-lg transition-colors"
+        >
+          <PanelLeftOpen className="size-5" aria-hidden="true" />
+        </button>
+      </nav>
+    )
+  }
+
+  const seesSection = (item: ChapterItem) =>
+    seesAllChapters || (department != null && item.departments.includes(department))
+
   const top = NAV_TOP.filter((item) => canSee(item.perm))
   const chapters = NAV_CHAPTERS.filter((chapter) => canSee(chapter.perm))
+    .map((chapter) => ({ ...chapter, items: chapter.items.filter(seesSection) }))
+    .filter((chapter) => chapter.items.length > 0)
 
   return (
     <nav aria-label="Navegacao do programa" className={cn('w-60 shrink-0', className)}>
+      <div className="mb-1 flex justify-end">
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          aria-expanded={true}
+          aria-label="Recolher menu"
+          title="Recolher menu"
+          className="text-ink-muted hover:bg-white hover:text-ink grid size-8 place-items-center rounded-lg transition-colors"
+        >
+          <PanelLeftClose className="size-4.5" aria-hidden="true" />
+        </button>
+      </div>
+
       <ul className="space-y-1">
         {top.map((item) => (
           <li key={item.to}>

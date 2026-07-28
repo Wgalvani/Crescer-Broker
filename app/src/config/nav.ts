@@ -8,6 +8,23 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
+import type { Enums } from '@/types/database.types'
+
+/** Setor responsavel (enum department do banco). */
+export type Department = Enums<'department'>
+
+/** Todos os setores -- para itens transversais (ex.: Anexos), visiveis a todos. */
+const ALL_DEPARTMENTS: Department[] = [
+  'comercial',
+  'merchandising',
+  'logistica',
+  'supply_chain',
+  'ti',
+  'rh',
+  'financeiro',
+  'diretoria',
+  'compliance',
+]
 
 /*
  * Navegacao lateral.
@@ -40,6 +57,14 @@ export type ChapterItem = {
   label: string
   /** Rota com hash de secao: '/pre-avaliacao/excelencia#sec-2-1'. */
   to: string
+  /*
+   * Setores ddonos desta secao. Fonte: criteria.responsible_department do seed
+   * (supabase/migrations/*_seed_program_2026.sql) -- mantenha em sincronia com
+   * ele. Uma secao pode ser MISTA (ex.: 2.8 = supply_chain + logistica por causa
+   * de 2.8.4). O menu mostra a secao a quem tem `scoring.read_all`/admin, ou a
+   * quem tem `profiles.department` neste conjunto.
+   */
+  departments: Department[]
 }
 
 export type ChapterAccent = {
@@ -138,11 +163,11 @@ export const NAV_CHAPTERS: NavChapter[] = [
     perm: 'program.read',
     accent: ACCENT_PERFORMANCE,
     items: [
-      { num: '1.1', label: 'VBC', to: '/programa/performance#sec-1-1' },
-      { num: '1.2', label: 'Cobertura', to: '/programa/performance#sec-1-2' },
-      { num: '1.3', label: 'Sortimento Farma B', to: '/programa/performance#sec-1-3' },
-      { num: '1.4', label: 'BEES', to: '/programa/performance#sec-1-4' },
-      { num: '1.5', label: 'Ruptura / Positivação', to: '/programa/performance#sec-1-5' },
+      { num: '1.1', label: 'VBC', to: '/programa/performance#sec-1-1', departments: ['comercial'] },
+      { num: '1.2', label: 'Cobertura', to: '/programa/performance#sec-1-2', departments: ['comercial'] },
+      { num: '1.3', label: 'Sortimento Farma B', to: '/programa/performance#sec-1-3', departments: ['comercial'] },
+      { num: '1.4', label: 'BEES', to: '/programa/performance#sec-1-4', departments: ['comercial'] },
+      { num: '1.5', label: 'Ruptura / Positivação', to: '/programa/performance#sec-1-5', departments: ['merchandising', 'comercial'] },
     ],
   },
   {
@@ -152,15 +177,15 @@ export const NAV_CHAPTERS: NavChapter[] = [
     perm: 'scoring.read_own',
     accent: ACCENT_EXCELENCIA,
     items: [
-      { num: '2.1', label: 'Pessoas', to: '/pre-avaliacao/excelencia#sec-2-1' },
-      { num: '2.2', label: 'Planejamento de Vendas', to: '/pre-avaliacao/excelencia#sec-2-2' },
-      { num: '2.3', label: 'Processos de Vendas', to: '/pre-avaliacao/excelencia#sec-2-3' },
-      { num: '2.4', label: 'Vendedor', to: '/pre-avaliacao/excelencia#sec-2-4' },
-      { num: '2.5', label: 'Promotor de Vendas', to: '/pre-avaliacao/excelencia#sec-2-5' },
-      { num: '2.6', label: 'Desenvolvimento da Rota', to: '/pre-avaliacao/excelencia#sec-2-6' },
-      { num: '2.7', label: 'TI', to: '/pre-avaliacao/excelencia#sec-2-7' },
-      { num: '2.8', label: 'Supply Chain', to: '/pre-avaliacao/excelencia#sec-2-8' },
-      { num: '2.9', label: 'Operações Logísticas', to: '/pre-avaliacao/excelencia#sec-2-9' },
+      { num: '2.1', label: 'Pessoas', to: '/pre-avaliacao/excelencia#sec-2-1', departments: ['rh'] },
+      { num: '2.2', label: 'Planejamento de Vendas', to: '/pre-avaliacao/excelencia#sec-2-2', departments: ['comercial', 'ti'] },
+      { num: '2.3', label: 'Processos de Vendas', to: '/pre-avaliacao/excelencia#sec-2-3', departments: ['financeiro', 'comercial'] },
+      { num: '2.4', label: 'Vendedor', to: '/pre-avaliacao/excelencia#sec-2-4', departments: ['comercial'] },
+      { num: '2.5', label: 'Promotor de Vendas', to: '/pre-avaliacao/excelencia#sec-2-5', departments: ['merchandising'] },
+      { num: '2.6', label: 'Desenvolvimento da Rota', to: '/pre-avaliacao/excelencia#sec-2-6', departments: ['comercial'] },
+      { num: '2.7', label: 'TI', to: '/pre-avaliacao/excelencia#sec-2-7', departments: ['ti'] },
+      { num: '2.8', label: 'Supply Chain', to: '/pre-avaliacao/excelencia#sec-2-8', departments: ['supply_chain', 'logistica'] },
+      { num: '2.9', label: 'Operações Logísticas', to: '/pre-avaliacao/excelencia#sec-2-9', departments: ['logistica'] },
     ],
   },
   {
@@ -170,12 +195,12 @@ export const NAV_CHAPTERS: NavChapter[] = [
     perm: 'scoring.read_own',
     accent: ACCENT_COMPLIANCE,
     items: [
-      { num: '2.11', label: 'Verbas em aberto', to: '/pre-avaliacao/compliance#sec-2-11' },
-      { num: '2.12', label: 'Alvarás e certidões', to: '/pre-avaliacao/compliance#sec-2-12' },
-      { num: '2.13', label: 'Expedição salvage/bloqueados', to: '/pre-avaliacao/compliance#sec-2-13' },
-      { num: '2.14', label: 'Transpasse', to: '/pre-avaliacao/compliance#sec-2-14' },
-      { num: '2.15', label: 'Escrituração', to: '/pre-avaliacao/compliance#sec-2-15' },
-      { num: '2.16', label: 'Produtos vencidos no PDV', to: '/pre-avaliacao/compliance#sec-2-16' },
+      { num: '2.11', label: 'Verbas em aberto', to: '/pre-avaliacao/compliance#sec-2-11', departments: ['financeiro'] },
+      { num: '2.12', label: 'Alvarás e certidões', to: '/pre-avaliacao/compliance#sec-2-12', departments: ['compliance', 'financeiro'] },
+      { num: '2.13', label: 'Expedição salvage/bloqueados', to: '/pre-avaliacao/compliance#sec-2-13', departments: ['logistica'] },
+      { num: '2.14', label: 'Transpasse', to: '/pre-avaliacao/compliance#sec-2-14', departments: ['logistica'] },
+      { num: '2.15', label: 'Escrituração', to: '/pre-avaliacao/compliance#sec-2-15', departments: ['financeiro'] },
+      { num: '2.16', label: 'Produtos vencidos no PDV', to: '/pre-avaliacao/compliance#sec-2-16', departments: ['merchandising'] },
     ],
   },
   {
@@ -184,6 +209,16 @@ export const NAV_CHAPTERS: NavChapter[] = [
     to: '/programa/anexos',
     perm: 'program.read',
     accent: ACCENT_ANEXOS,
-    items: [{ num: 'I–XI', label: 'Roteiros, kits e certidões', to: '/programa/anexos' }],
+    // Anexos nao tem responsible_department no catalogo (referencia transversal:
+    // roteiros, kits, certidoes). Visivel a todos os setores. Para restringir a
+    // algum setor, troque ALL_DEPARTMENTS pelo conjunto desejado.
+    items: [
+      {
+        num: 'I–XI',
+        label: 'Roteiros, kits e certidões',
+        to: '/programa/anexos',
+        departments: ALL_DEPARTMENTS,
+      },
+    ],
   },
 ]

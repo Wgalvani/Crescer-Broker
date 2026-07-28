@@ -11,10 +11,26 @@ export function AppLayout() {
   const { data: currentUser } = useCurrentUser()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [navCollapsed, setNavCollapsed] = useState(
+    () => localStorage.getItem('nav-collapsed') === '1'
+  )
 
   const isAdmin = currentUser?.roles.some((r) => r.key === 'admin') ?? false
   const canSee = (perm?: string) =>
     !perm || isAdmin || (currentUser?.permissions.has(perm) ?? false)
+
+  // Recorte do menu por setor: quem tem scoring.read_all/admin ve todos os
+  // capitulos; os demais, so as secoes do proprio department (igual a RLS).
+  const seesAllChapters = isAdmin || (currentUser?.permissions.has('scoring.read_all') ?? false)
+  const department = currentUser?.profile.department ?? null
+
+  function toggleNav() {
+    setNavCollapsed((v) => {
+      const next = !v
+      localStorage.setItem('nav-collapsed', next ? '1' : '0')
+      return next
+    })
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -117,7 +133,14 @@ export function AppLayout() {
       </header>
 
       <div className="relative z-10 mx-auto flex max-w-7xl gap-6 px-4 py-6">
-        <ProgramNav canSee={canSee} className="hidden md:block" />
+        <ProgramNav
+          canSee={canSee}
+          department={department}
+          seesAllChapters={seesAllChapters}
+          collapsed={navCollapsed}
+          onToggleCollapsed={toggleNav}
+          className="hidden md:block"
+        />
 
         <main id="conteudo" className="min-w-0 flex-1">
           <Outlet />
