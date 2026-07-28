@@ -51,3 +51,37 @@ export type SectionGroup = {
   module: string
   items: CriterionWithEntry[]
 }
+
+/*
+ * Radar de Gaps: prontidao por secao numa rodada, comparavel com outra. O "gap"
+ * de uma secao e 100 - prontidao. Prontidao por CONTAGEM (status.ts), nunca por
+ * pontos -- o livro tem pontos incompletos.
+ */
+export type SectionReadiness = {
+  section: string
+  module: string
+  chapter: Chapter
+  /** Prontidao 0-100 na rodada selecionada. */
+  percent: number
+  /** Prontidao 0-100 na rodada de comparacao (null se nao houver). */
+  comparePercent: number | null
+  /** Criterios do escopo na secao (denominador antes de tirar 'nao se aplica'). */
+  total: number
+}
+
+/** Um criterio em gap (nao conforme / nao avaliado / parcial) na rodada atual. */
+export type GapItem = {
+  criterionId: string
+  code: string
+  section: string
+  module: string
+  title: string
+  chapter: Chapter
+  responsibleDepartment: Criterion['responsible_department']
+  status: ConformityStatus
+}
+
+export type GapsRadarData = {
+  sections: SectionReadiness[]
+  gaps: GapItem[]
+}

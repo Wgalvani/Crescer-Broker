@@ -5,6 +5,7 @@ import {
   Award,
   ShieldCheck,
   Paperclip,
+  Users,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -74,6 +75,7 @@ export type NavChapter = {
 export const NAV_TOP: NavTopItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
   { label: 'Gestão à Vista', to: '/pre-avaliacao', icon: Gauge, perm: 'scoring.read_own' },
+  { label: 'Usuários', to: '/usuarios', icon: Users, perm: 'users.read' },
 ]
 
 const ACCENT_PERFORMANCE: ChapterAccent = {

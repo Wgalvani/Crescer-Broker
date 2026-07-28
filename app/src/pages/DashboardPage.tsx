@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { RoundsEvolution } from '@/components/pre-avaliacao/RoundsEvolution'
+import { GapsRadarSection } from '@/components/pre-avaliacao/GapsRadarSection'
 
 /*
  * Placeholder da Fundacao.
@@ -63,6 +64,8 @@ export function DashboardPage() {
       </div>
 
       <RoundsEvolution />
+
+      <GapsRadarSection compact />
 
       <section
         aria-labelledby="catalogo-titulo"

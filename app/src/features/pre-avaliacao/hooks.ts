@@ -13,11 +13,15 @@ import { useCurrentUser } from '@/features/auth/hooks'
 import { readinessFromStatuses } from '@/features/pre-avaliacao/status'
 import type {
   Chapter,
+  ConformityStatus,
   Criterion,
   CriterionWithEntry,
   Entry,
+  GapItem,
+  GapsRadarData,
   Rodada,
   SectionGroup,
+  SectionReadiness,
 } from '@/features/pre-avaliacao/types'
 
 const CRITERION_COLUMNS =
@@ -233,6 +237,123 @@ export function useChapterCatalog(chapter: Chapter) {
         })
       )
       return groupBySection(merged)
+    },
+  })
+}
+
+/*
+ * Radar de Gaps: prontidao por secao numa rodada, opcionalmente comparada com
+ * outra (a anterior, em geral). Um "gap" e um criterio que nao esta conforme --
+ * nao_conforme pesa mais que nao_avaliado, que pesa mais que parcial. Prontidao
+ * por CONTAGEM (status.ts): pontos do livro estao incompletos.
+ *
+ * Nota da Skill: 1.9.0 (Booster OG) nao e criterio do livro; como e do capitulo
+ * 'performance', o filtro por CHAPTERS_AVALIADOS ja o deixa de fora.
+ */
+const GAP_PRIORITY: Record<ConformityStatus, number> = {
+  nao_conforme: 0,
+  nao_avaliado: 1,
+  parcial: 2,
+  conforme: 99,
+  nao_aplicavel: 99,
+}
+
+type RadarCriterion = Pick<
+  Criterion,
+  'id' | 'code' | 'chapter' | 'module' | 'title' | 'responsible_department'
+>
+
+export function useGapsRadar(roundId: string | undefined, compareRoundId?: string) {
+  return useQuery({
+    queryKey: ['pre-avaliacao', 'gaps-radar', roundId ?? null, compareRoundId ?? null],
+    enabled: Boolean(roundId),
+    staleTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<GapsRadarData> => {
+      const criteriaResult = await supabase
+        .from('criteria')
+        .select('id, code, chapter, module, title, responsible_department')
+        .in('chapter', CHAPTERS_AVALIADOS)
+        .eq('active', true)
+        .order('display_order', { ascending: true })
+        .order('code', { ascending: true })
+      if (criteriaResult.error) throw criteriaResult.error
+      const criteria = (criteriaResult.data as RadarCriterion[]) ?? []
+
+      const roundIds = compareRoundId ? [roundId!, compareRoundId] : [roundId!]
+      const entriesResult = await supabase
+        .from('pre_assessment_entries')
+        .select('pre_assessment_id, criterion_id, status')
+        .in('pre_assessment_id', roundIds)
+      if (entriesResult.error) throw entriesResult.error
+
+      const byRound = new Map<string, Map<string, ConformityStatus>>()
+      for (const e of (entriesResult.data as Pick<
+        Entry,
+        'pre_assessment_id' | 'criterion_id' | 'status'
+      >[]) ?? []) {
+        let m = byRound.get(e.pre_assessment_id)
+        if (!m) {
+          m = new Map()
+          byRound.set(e.pre_assessment_id, m)
+        }
+        m.set(e.criterion_id, e.status)
+      }
+      const currentMarks = byRound.get(roundId!) ?? new Map<string, ConformityStatus>()
+      const compareMarks = compareRoundId
+        ? byRound.get(compareRoundId) ?? new Map<string, ConformityStatus>()
+        : null
+
+      type Acc = {
+        section: string
+        module: string
+        chapter: Chapter
+        current: ConformityStatus[]
+        compare: ConformityStatus[]
+        total: number
+      }
+      const sectionsMap = new Map<string, Acc>()
+      const gaps: GapItem[] = []
+
+      for (const c of criteria) {
+        const section = sectionOf(c.code)
+        let acc = sectionsMap.get(section)
+        if (!acc) {
+          acc = { section, module: c.module, chapter: c.chapter, current: [], compare: [], total: 0 }
+          sectionsMap.set(section, acc)
+        }
+        const status = currentMarks.get(c.id) ?? 'nao_avaliado'
+        acc.current.push(status)
+        if (compareMarks) acc.compare.push(compareMarks.get(c.id) ?? 'nao_avaliado')
+        acc.total += 1
+
+        if (status === 'nao_conforme' || status === 'nao_avaliado' || status === 'parcial') {
+          gaps.push({
+            criterionId: c.id,
+            code: c.code,
+            section,
+            module: c.module,
+            title: c.title,
+            chapter: c.chapter,
+            responsibleDepartment: c.responsible_department,
+            status,
+          })
+        }
+      }
+
+      const sections: SectionReadiness[] = [...sectionsMap.values()].map((a) => ({
+        section: a.section,
+        module: a.module,
+        chapter: a.chapter,
+        percent: readinessFromStatuses(a.current).percent,
+        comparePercent: compareMarks ? readinessFromStatuses(a.compare).percent : null,
+        total: a.total,
+      }))
+
+      gaps.sort(
+        (x, y) => GAP_PRIORITY[x.status] - GAP_PRIORITY[y.status] || x.code.localeCompare(y.code)
+      )
+
+      return { sections, gaps }
     },
   })
 }

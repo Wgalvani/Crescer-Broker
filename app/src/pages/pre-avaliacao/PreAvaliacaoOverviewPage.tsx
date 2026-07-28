@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ReadinessGauge } from '@/components/pre-avaliacao/ReadinessGauge'
+import { GapsRadarSection } from '@/components/pre-avaliacao/GapsRadarSection'
 import { useChapterEntries, useRodadaAberta } from '@/features/pre-avaliacao/hooks'
 import { computeReadiness } from '@/features/pre-avaliacao/status'
 import type { Chapter } from '@/features/pre-avaliacao/types'
@@ -86,6 +87,8 @@ export function PreAvaliacaoOverviewPage() {
           </p>
         </>
       )}
+
+      <GapsRadarSection />
     </div>
   )
 }

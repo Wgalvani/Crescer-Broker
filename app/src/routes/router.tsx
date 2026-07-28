@@ -10,6 +10,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { PreAvaliacaoOverviewPage } from '@/pages/pre-avaliacao/PreAvaliacaoOverviewPage'
 import { ChapterPreAvaliacaoPage } from '@/pages/pre-avaliacao/ChapterPreAvaliacaoPage'
 import { RodadasPage } from '@/pages/pre-avaliacao/RodadasPage'
+import { UsuariosPage } from '@/pages/usuarios/UsuariosPage'
 import { PerformancePage } from '@/pages/programa/PerformancePage'
 import { AnexosPage } from '@/pages/programa/AnexosPage'
 import { ErrorPage, ForbiddenPage, NotFoundPage } from '@/pages/StatusPages'
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
             children: [
               { path: '/', element: <Navigate to="/dashboard" replace /> },
               { path: '/dashboard', element: <DashboardPage /> },
+              {
+                element: <RequirePermission perm="users.read" />,
+                children: [{ path: '/usuarios', element: <UsuariosPage /> }],
+              },
               {
                 element: <RequirePermission perm="program.read" />,
                 children: [
